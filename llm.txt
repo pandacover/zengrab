@@ -1,0 +1,43 @@
+# zengrab
+
+Select context for coding agents directly from OpenTUI apps. Click any component to copy its metadata and content (when available) to the clipboard.
+
+## Project structure
+
+```
+zengrab/
+├── src/index.ts      # Main library: grabContext, grabAndCopy, initZengrab
+├── dist/             # Built output (ESM + .d.ts)
+├── package.json
+├── tsconfig.json
+├── tsup.config.ts
+└── README.md
+```
+
+## Commands
+
+- `bun run build` - Build with tsup
+- `bun run dev` - Watch mode
+
+## Dependencies
+
+- @opentui/core - OpenTUI renderer, Renderable, CliRenderer
+- clipboardy - Node clipboard access
+
+## API
+
+- `initZengrab(renderer, options?)` - Register shortcuts. Returns ZengrabInstance (enable, disable, toggle, destroy, enabled, captureHandler, hoverHandler).
+- `grabContext(renderer, renderable?)` - Get ZengrabContext. Optional renderable for specific target.
+- `grabContextFromRenderable(renderable)` - Get context from any renderable.
+- `grabAndCopy(renderer, renderable?)` - Grab and copy to clipboard.
+
+## Key implementation details
+
+- Hover highlights element with border (hoverHandler in onMouseMove). Click to grab (captureHandler in onMouseDown). Ctrl+Alt+G = toggle.
+- Extracts content from CodeRenderable, TextBufferRenderable, etc. (plainText, content).
+- Walks `renderable.parent` to build component hierarchy.
+- keyInput used only for toggle shortcut.
+
+## Preferences
+
+- Use bun for package manager and runtime.
