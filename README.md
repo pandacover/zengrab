@@ -4,12 +4,6 @@ Select context for coding agents directly from OpenTUI apps.
 
 Click any component in your terminal UI to copy its component name, type, and hierarchy to your clipboard—ready to paste into Cursor, Claude Code, Copilot, or any coding agent.
 
-## Install
-
-```bash
-bun add zengrab
-```
-
 ## Usage
 
 ### Auto-init (recommended)
