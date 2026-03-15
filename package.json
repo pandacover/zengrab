@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "example": "bun run build && bun run example/index.ts"
   },
   "keywords": [
     "opentui",

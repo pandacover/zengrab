@@ -4,6 +4,8 @@ Select context for coding agents directly from OpenTUI apps.
 
 Click any component in your terminal UI to copy its component name, type, and hierarchy to your clipboard—ready to paste into Cursor, Claude Code, Copilot, or any coding agent.
 
+![Agent Chat](assets/screenshot.png)
+
 ## Usage
 
 ### Auto-init (recommended)
@@ -104,13 +106,8 @@ Select context for coding agents...
 ```bash
 bun install
 bun run build
-bun run dev   # watch mode
-```
-
-To try it, run the test app in `../zengrabtest`:
-
-```bash
-cd ../zengrabtest && bun run start
+bun run dev     # watch mode
+bun run example # run example app
 ```
 
 ## License
