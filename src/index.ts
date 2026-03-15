@@ -22,6 +22,12 @@ export interface ZengrabOptions {
   enabled?: boolean;
   /** Border color for hover highlight. Default: #58A6FF */
   hoverBorderColor?: ColorInput;
+  /** Show a toast when copied. Default: true */
+  showToast?: boolean;
+  /** Toast message. Default: "Copied!" */
+  toastMessage?: string;
+  /** Toast duration in ms. Default: 2000 */
+  toastDuration?: number;
   /** Called when context is copied. Receives the copied text. */
   onCopy?: (context: ZengrabContext, text: string) => void;
   /** Called when toggled. Receives new enabled state. */
@@ -167,13 +173,19 @@ export function initZengrab(
     toggleShortcut = { ctrl: true, alt: true, name: "g" },
     enabled: initialEnabled = true,
     hoverBorderColor = "#58A6FF",
+    showToast = true,
+    toastMessage = "Copied!",
+    toastDuration = 2000,
     onCopy,
     onToggle,
   } = options;
 
   let enabled = initialEnabled;
   let hoveredRenderable: Renderable | null = null;
+  let toastUntil = 0;
   const borderColor = parseColor(hoverBorderColor);
+  const toastBg = parseColor("#2a2725");
+  const toastFg = parseColor("#a8a6a1");
 
   const transparent = RGBA.fromValues(0, 0, 0, 0);
   const CONTAINER_TYPES = new Set([
@@ -201,7 +213,20 @@ export function initZengrab(
     });
   };
 
+  const drawToast = (buffer: OptimizedBuffer, _deltaTime: number) => {
+    if (!showToast || Date.now() >= toastUntil) return;
+    const msg = toastMessage;
+    const padding = 2;
+    const w = msg.length + padding * 2;
+    const h = 3;
+    const x = Math.max(0, Math.floor((renderer.width - w) / 2));
+    const y = Math.max(0, renderer.height - h - 2);
+    buffer.fillRect(x, y, w, h, toastBg);
+    buffer.drawText(msg, x + padding, y + 1, toastFg, toastBg);
+  };
+
   renderer.addPostProcessFn(drawHoverBorder);
+  renderer.addPostProcessFn(drawToast);
 
   const doGrab = (target: Renderable | null) => {
     if (!target) return;
@@ -216,7 +241,17 @@ export function initZengrab(
     const text = parts.join("\n");
 
     clipboard.write(text).then(
-      () => onCopy?.(context, text),
+      () => {
+        if (showToast) {
+          toastUntil = Date.now() + toastDuration;
+          renderer.root.requestRender();
+          setTimeout(() => {
+            toastUntil = 0;
+            renderer.root.requestRender();
+          }, toastDuration);
+        }
+        onCopy?.(context, text);
+      },
       () => {}
     );
   };
@@ -268,6 +303,7 @@ export function initZengrab(
     destroy: () => {
       keyInput.off("keypress", toggleHandler);
       renderer.removePostProcessFn(drawHoverBorder);
+      renderer.removePostProcessFn(drawToast);
     },
   };
 

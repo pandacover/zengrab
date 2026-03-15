@@ -1,48 +1,110 @@
-import { readFileSync } from "fs"
-import { join } from "path"
 import {
   createCliRenderer,
-  MarkdownRenderable,
-  SyntaxStyle,
-  RGBA,
+  BoxRenderable,
+  TextRenderable,
+  InputRenderable,
   ScrollBoxRenderable,
 } from "@opentui/core"
 import { initZengrab } from "zengrab"
 
-const staticMarkdown = readFileSync(
-  join(import.meta.dir, "../llm.txt"),
-  "utf-8"
-)
-
 const renderer = await createCliRenderer({
   exitOnCtrlC: true,
 })
-const zengrab = initZengrab(renderer)
 
-const syntaxStyle = SyntaxStyle.fromStyles({
-  "markup.heading.1": { fg: RGBA.fromHex("#58A6FF"), bold: true },
-  "markup.heading.2": { fg: RGBA.fromHex("#79C0FF"), bold: true },
-  "markup.list": { fg: RGBA.fromHex("#FF7B72") },
-  "markup.raw": { fg: RGBA.fromHex("#A5D6FF") },
-  "markup.raw.block": { fg: RGBA.fromHex("#A5D6FF") },
-  default: { fg: RGBA.fromHex("#E6EDF3") },
+// Japanese minimalist + dark theme: ma, kanso, fukinsei
+// Palette: dark warm greys, muted text, soft accent (pale oak)
+const bg = "#1a1a18"
+const bgAlt = "#252520"
+const textMuted = "#a8a6a1"
+const accent = "#8b7355"
+
+const zengrab = initZengrab(renderer, {
+  hoverBorderColor: accent,
 })
 
-const markdown = new MarkdownRenderable(renderer, {
-  id: "content",
-  width: renderer.width - 2,
-  content: staticMarkdown.trim(),
-  syntaxStyle,
-  conceal: true,
-})
-
-const scrollbox = new ScrollBoxRenderable(renderer, {
-  id: "scroll",
+const root = new BoxRenderable(renderer, {
+  id: "chat-root",
   width: renderer.width,
   height: renderer.height,
+  flexDirection: "column",
+  backgroundColor: bg,
+  padding: 2,
 })
-scrollbox.onMouseDown = (e) => zengrab.captureHandler(e)
-scrollbox.onMouseMove = (e) => zengrab.hoverHandler(e)
+root.onMouseDown = (e) => zengrab.captureHandler(e)
+root.onMouseMove = (e) => zengrab.hoverHandler(e)
 
-scrollbox.add(markdown)
-renderer.root.add(scrollbox)
+const header = new BoxRenderable(renderer, {
+  id: "header",
+  width: "100%",
+  height: 2,
+  flexShrink: 0,
+  border: false,
+  backgroundColor: bgAlt,
+  padding: 1,
+})
+const headerText = new TextRenderable(renderer, {
+  id: "header-title",
+  content: "Agent Chat",
+  fg: textMuted,
+})
+header.add(headerText)
+root.add(header)
+
+const scrollbox = new ScrollBoxRenderable(renderer, {
+  id: "messages",
+  width: "100%",
+  flexGrow: 1,
+  rootOptions: { backgroundColor: bg },
+})
+root.add(scrollbox)
+
+const placeholderMessages = [
+  { role: "user", text: "Hello, what can you help me with?" },
+  {
+    role: "agent",
+    text: "I can help you test the zengrab library! Click any component to grab its context.",
+  },
+  { role: "user", text: "Sounds good." },
+]
+
+for (let i = 0; i < placeholderMessages.length; i++) {
+  const m = placeholderMessages[i]
+  const bubble = new BoxRenderable(renderer, {
+    id: `msg-${m.role}-${i}`,
+    width: "100%",
+    padding: 2,
+    marginBottom: 2,
+    backgroundColor: m.role === "user" ? bgAlt : "#2a2725",
+    border: false,
+  })
+  const text = new TextRenderable(renderer, {
+    id: `msg-text-${i}`,
+    content: m.text,
+    fg: textMuted,
+  })
+  bubble.add(text)
+  scrollbox.add(bubble)
+}
+
+const inputArea = new BoxRenderable(renderer, {
+  id: "input-area",
+  width: "100%",
+  padding: 2,
+  flexShrink: 0,
+  border: false,
+  backgroundColor: bgAlt,
+})
+const input = new InputRenderable(renderer, {
+  id: "chat-input",
+  width: renderer.width - 8,
+  placeholder: "Type a message... (UI only, no logic)",
+  backgroundColor: bg,
+  focusedBackgroundColor: bgAlt,
+  textColor: textMuted,
+  cursorColor: accent,
+})
+inputArea.add(input)
+root.add(inputArea)
+
+renderer.root.add(root)
+input.focus()

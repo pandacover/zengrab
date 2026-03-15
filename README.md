@@ -74,7 +74,10 @@ if (context) await grabAndCopy(renderer, event.target);
 const zengrab = initZengrab(renderer, {
   toggleShortcut: { ctrl: true, alt: true, name: "g" },
   enabled: true,
-  hoverBorderColor: "#58A6FF", // border color for hover highlight
+  hoverBorderColor: "#58A6FF",
+  showToast: true,        // toast on copy (default: true)
+  toastMessage: "Copied!",
+  toastDuration: 2000,
   onCopy: (context, text) => console.log("Copied:", text),
   onToggle: (enabled) => console.log("Zengrab:", enabled ? "on" : "off"),
 });
@@ -99,7 +102,7 @@ Select context for coding agents...
 - **`grabContextFromRenderable(renderable)`** – Get context from any renderable (Text, Box, etc.).
 - **`grabAndCopy(renderer, renderable?)`** – Grab and copy to clipboard.
 
-**Interaction:** Hover to highlight (border). Click any component to grab. Ctrl+Alt+G = toggle on/off.
+**Interaction:** Hover to highlight (border). Click any component to grab. A toast appears when copied. Ctrl+Alt+G = toggle on/off.
 
 ## Development
 
